@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo — Premium Minimalist Workspace</title>
+  
+  <!-- Premium favicon using user provided logo -->
+  <link rel="icon" type="image/jpeg" href="https://i.ibb.co/h1FnYn0q/SAYO-on-Instagram-Letter-H-Logo-Symbol-Minimalism-lettering-letterings-letters-lovele.jpg">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'SF Pro Display', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Cropper.js CDN for image cropping -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+  <!-- Google Fonts for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Custom Core Animations & Styles -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    /* Premium micro-interactions & animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fade-in {
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-slide-down {
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Hide standard scrollbars cleanly for minimalist design cards */
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Custom premium loaders */
+    .loader {
+      width: 65px;
+      aspect-ratio: 1;
+      position: relative;
+    }
+    .loader:before,
+    .loader:after {
+      content: "";
+      position: absolute;
+      border-radius: 50px;
+      box-shadow: 0 0 0 3px inset #ffffff;
+      animation: l4 2.5s infinite;
+    }
+    .loader:after {
+      animation-delay: -1.25s;
+    }
+    @keyframes l4 {
+      0% {
+        inset: 0 35px 35px 0;
+      }
+      12.5% {
+        inset: 0 35px 0 0;
+      }
+      25% {
+        inset: 35px 35px 0 0;
+      }
+      37.5% {
+        inset: 35px 0 0 0;
+      }
+      50% {
+        inset: 35px 0 0 35px;
+      }
+      62.5% {
+        inset: 0 0 0 35px;
+      }
+      75% {
+        inset: 0 0 35px 35px;
+      }
+      87.5% {
+        inset: 0 0 35px 0;
+      }
+      100% {
+        inset: 0 35px 35px 0;
+      }
+    }
+
+    /* Custom Cropper style overrides to match dark mode */
+    .cropper-view-box,
+    .cropper-face {
+      border-radius: 50%;
+    }
+    .cropper-line, .cropper-point {
+      background-color: #111111;
+    }
+    .dark .cropper-line, .dark .cropper-point {
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body class="min-h-screen w-full flex bg-[#f8f9fa] text-neutral-900 dark:bg-[#090909] dark:text-neutral-100 transition-colors duration-300">
+
+  <!-- ================= STREAMING_CHUNK: Adding splash loader screen ================= -->
+  <!-- Premium startup splash loader screen overlay -->
+  <div id="splash-screen" class="fixed inset-0 bg-[#090909] z-[60] flex flex-col items-center justify-center gap-8 transition-all duration-700 pointer-events-auto">
+    <div class="flex flex-col items-center gap-6">
+      <img src="https://i.ibb.co/h1FnYn0q/SAYO-on-Instagram-Letter-H-Logo-Symbol-Minimalism-lettering-letterings-letters-lovele.jpg" class="w-16 h-16 rounded-2xl object-cover shadow-2xl border border-white/10 opacity-90 animate-pulse" alt="H Logo">
+      <div class="loader"></div>
+      <p class="text-[10px] tracking-[0.25em] font-extrabold uppercase text-neutral-400 animate-pulse">Syncing Environment</p>
+    </div>
+  </div>
+
+  <!-- ================= TOASTS NOTIFICATIONS PORTAL ================= -->
+  <div id="toast-portal" class="fixed top-6 right-6 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
+
+  <!-- ================= MAIN LAYOUT WRAPPER ================= -->
+  <div class="min-h-screen w-full flex">
+    
+    <!-- === DESKTOP SIDEBAR NAVIGATION === -->
+    <aside id="sidebar" class="hidden lg:flex flex-col justify-between p-6 border-r transition-all duration-300 bg-white dark:bg-[#0f0f0f] w-64 border-neutral-200/60 dark:border-neutral-900">
+      <div class="space-y-8">
+        <!-- Logo / Brand with Premium H Logo -->
+        <div class="flex items-center gap-3">
+          <img src="https://i.ibb.co/h1FnYn0q/SAYO-on-Instagram-Letter-H-Logo-Symbol-Minimalism-lettering-letterings-letters-lovele.jpg" class="w-10 h-10 rounded-2xl object-cover shadow-sm border border-neutral-200/40 dark:border-neutral-800" alt="H logo">
+          <div id="sidebar-brand-text">
+            <h1 class="text-md font-extrabold tracking-tight">Todo</h1>
+            <p class="text-[10px] text-neutral-400 font-medium">Workspace Premium</p>
+          </div>
+        </div>
+
+        <!-- Quick Task Trigger CTA -->
+        <div class="px-1">
+          <button onclick="handleOpenAddTask()" class="w-full py-3 px-4 rounded-xl bg-neutral-950 hover:bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98]">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span id="sidebar-cta-text">New Schedule</span>
+          </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="space-y-1.5" id="sidebar-nav"></nav>
+      </div>
+
+      <!-- User profile & Footer block -->
+      <div class="pt-6 border-t border-neutral-100 dark:border-neutral-900">
+        <div onclick="handleOpenProfileModal()" class="flex items-center gap-3 cursor-pointer group hover:opacity-80 transition-all">
+          <div id="sidebar-avatar" class="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center font-bold text-neutral-750 dark:text-neutral-200 overflow-hidden border border-neutral-200/30 dark:border-neutral-800">
+            JD
+          </div>
+          <div id="sidebar-profile-text" class="min-w-0">
+            <h4 class="text-xs font-bold truncate group-hover:text-neutral-950 dark:group-hover:text-white transition-colors">John Doe</h4>
+            <p class="text-[10px] text-neutral-400 truncate">Premium Workspace</p>
+          </div>
+        </div>
+        
+        <!-- Sidebar theme switch panel -->
+        <button onclick="toggleDarkMode()" id="sidebar-theme-btn" class="mt-4 w-full py-2 px-3 rounded-xl border border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-[10px] font-bold hover:bg-neutral-50 dark:hover:bg-neutral-900 transition">
+          <span class="text-neutral-500">Appearance</span>
+          <div class="flex items-center gap-1 text-neutral-800 dark:text-neutral-200">
+            <i data-lucide="sun" class="w-3 h-3 block dark:hidden"></i>
+            <i data-lucide="moon" class="w-3 h-3 hidden dark:block"></i>
+            <span id="sidebar-theme-label">Light</span>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- === MAIN PAGE CONTAINER WRAPPER === -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[#fbfbfb] dark:bg-[#090909] pb-24 lg:pb-8">
+      
+      <!-- TOP STICKY BAR -->
+      <header class="px-6 py-4 flex items-center justify-between border-b border-neutral-100 dark:border-neutral-900 bg-white/70 dark:bg-[#0f0f0f]/70 backdrop-blur-md sticky top-0 z-30">
+        <!-- Mobile Logo -->
+        <div class="flex items-center gap-3 lg:hidden">
+          <img src="https://i.ibb.co/h1FnYn0q/SAYO-on-Instagram-Letter-H-Logo-Symbol-Minimalism-lettering-letterings-letters-lovele.jpg" class="w-8 h-8 rounded-xl object-cover shadow-sm border border-neutral-200/40 dark:border-neutral-800" alt="H logo">
+          <span class="text-xs font-black tracking-tight uppercase">Todo</span>
+        </div>
+
+        <div class="hidden lg:flex items-center gap-3">
+          <span class="text-[10px] font-extrabold uppercase tracking-widest text-neutral-400">Workspace Dashboard</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[10px] font-bold text-neutral-400">Sync Online</span>
+        </div>
+
+        <!-- Real-Time Date and Clock in sticky top header -->
+        <div class="flex items-center gap-4">
+          <div class="text-right select-none hidden sm:block">
+            <p id="live-time-ticker" class="text-xs font-extrabold tracking-tight text-neutral-800 dark:text-neutral-200"></p>
+            <p id="live-date-ticker" class="text-[9px] font-bold text-neutral-400 uppercase tracking-widest"></p>
+          </div>
+
+          <!-- Clickable Avatar to quickly open Profile Modal -->
+          <div onclick="handleOpenProfileModal()" class="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center cursor-pointer overflow-hidden hover:opacity-85 transition-opacity" id="header-avatar-btn">
+            <div id="topbar-avatar" class="w-full h-full flex items-center justify-center font-bold text-xs text-neutral-700 dark:text-neutral-300">JD</div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0f0f0f] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition" title="Toggle Theme">
+              <i data-lucide="sun" class="w-3.5 h-3.5 block dark:hidden"></i>
+              <i data-lucide="moon" class="w-3.5 h-3.5 hidden dark:block"></i>
+            </button>
+            <button onclick="handleOpenAddTask()" class="lg:hidden p-2 rounded-xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm" title="Create New Task">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- ACTIVE TAB CONTENT HOST -->
+      <div id="tab-content" class="p-6 max-w-7xl w-full mx-auto space-y-6 flex-1 animate-fade-in"></div>
+
+    </main>
+
+    <!-- === MOBILE CAPSULE NAVIGATION BAR === -->
+    <div class="lg:hidden fixed bottom-6 left-6 right-6 h-[66px] bg-neutral-950/95 dark:bg-neutral-900/95 text-white rounded-3xl flex items-center justify-between px-6 shadow-2xl z-40 border border-white/10 backdrop-blur-md" id="mobile-dock"></div>
+
+  </div>
+
+  <!-- ================= STREAMING_CHUNK: Adding profile edit and crop modal ================= -->
+  <!-- ================= EDIT PROFILE & CROP MODAL ================= -->
+  <div id="profile-modal-container" class="fixed inset-0 bg-black/60 dark:bg-black/85 backdrop-blur-xs z-50 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-6 transition-all duration-300 hidden">
+    <!-- Backdrop close zone -->
+    <div class="absolute inset-0" onclick="handleCloseProfileModal()"></div>
+    
+    <div class="relative w-full lg:max-w-md bg-white dark:bg-[#0f0f0f] rounded-t-[32px] lg:rounded-3xl p-6 max-h-[90%] lg:max-h-full overflow-y-auto animate-slide-up lg:animate-fade-in border border-neutral-200/40 dark:border-neutral-900 shadow-2xl z-10">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-neutral-900">
+        <h3 class="text-md font-extrabold text-neutral-900 dark:text-white">Edit User Profile</h3>
+        <button onclick="handleCloseProfileModal()" class="w-8 h-8 bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 rounded-full flex items-center justify-center text-neutral-500 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- MAIN PROFILE EDIT FORM -->
+      <form id="profile-edit-form" onsubmit="handleSaveProfile(event)" class="mt-5 space-y-5 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+        
+        <!-- Premium Crop File Upload area -->
+        <div class="flex flex-col items-center justify-center gap-3">
+          <div class="relative w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center group overflow-hidden">
+            <div id="modal-profile-avatar-preview" class="w-full h-full flex items-center justify-center font-bold text-2xl text-neutral-700 dark:text-neutral-300">
+              JD
+            </div>
+            <!-- Overlay Change trigger button -->
+            <button type="button" onclick="triggerAvatarUpload()" class="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <i data-lucide="camera" class="w-4 h-4 mb-0.5"></i>
+              <span class="text-[8px] uppercase tracking-wider font-extrabold">Change</span>
+            </button>
+          </div>
+          
+          <!-- Hidden Input Node for avatar image selection -->
+          <input type="file" id="profile-file-input" accept="image/*" class="hidden" onchange="handleAvatarFileSelect(event)">
+          <p class="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Click photo to upload & crop</p>
+        </div>
+
+        <!-- Name input -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Full Name</label>
+          <input type="text" id="profile-name-input" required class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-250 dark:border-neutral-850 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-950 transition">
+        </div>
+
+        <!-- Role/Plan input -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Workspace status / role</label>
+          <input type="text" id="profile-plan-input" required class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-250 dark:border-neutral-850 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-950 transition">
+        </div>
+
+        <!-- Submit CTAs -->
+        <div class="pt-4 flex gap-3">
+          <button type="button" onclick="handleCloseProfileModal()" class="flex-1 py-3.5 text-xs font-bold text-neutral-600 bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 rounded-xl hover:bg-neutral-200/50 transition">Cancel</button>
+          <button type="submit" class="flex-1 py-3.5 text-xs font-bold text-white bg-neutral-950 dark:bg-white dark:text-neutral-950 rounded-xl shadow-md hover:opacity-90 transition">Save Changes</button>
+        </div>
+      </form>
+
+      <!-- IMAGE CROPPING SUB-INTERFACE (Toggled on upload) -->
+      <div id="cropping-view" class="mt-5 space-y-4 hidden animate-fade-in">
+        <div class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold mb-1">Adjust Crop Boundary</div>
+        
+        <!-- Cropper Box container -->
+        <div class="w-full max-h-[280px] rounded-2xl overflow-hidden bg-neutral-50 dark:bg-[#161616] border border-neutral-200/60 dark:border-neutral-900 flex justify-center items-center">
+          <img id="cropping-image-element" src="" class="max-w-full block">
+        </div>
+
+        <!-- Crop CTAs -->
+        <div class="flex gap-3">
+          <button type="button" onclick="cancelCropping()" class="flex-1 py-3 text-xs font-bold text-neutral-600 bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 rounded-xl transition">Back</button>
+          <button type="button" onclick="applyCroppedImage()" class="flex-1 py-3 text-xs font-bold text-white bg-neutral-950 dark:bg-white dark:text-neutral-950 rounded-xl shadow transition">Crop & Set</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= TASK CREATION/EDIT MODAL ================= -->
+  <div id="modal-container" class="fixed inset-0 bg-black/60 dark:bg-black/85 backdrop-blur-xs z-50 flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-6 transition-all duration-300 hidden">
+    <!-- Backdrop close zone -->
+    <div class="absolute inset-0" onclick="handleCloseModal()"></div>
+    
+    <div class="relative w-full lg:max-w-lg bg-white dark:bg-[#0f0f0f] rounded-t-[32px] lg:rounded-3xl p-6 max-h-[90%] lg:max-h-full overflow-y-auto animate-slide-up lg:animate-fade-in border border-neutral-200/40 dark:border-neutral-900 shadow-2xl z-10">
+      <div class="flex items-center justify-between pb-4 border-b border-neutral-100 dark:border-neutral-900">
+        <h3 id="modal-title" class="text-md font-extrabold text-neutral-900 dark:text-white">Schedule New Goal</h3>
+        <button onclick="handleCloseModal()" class="w-8 h-8 bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 rounded-full flex items-center justify-center text-neutral-500 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="task-form" onsubmit="handleSaveTask(event)" class="mt-5 space-y-4 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+        <!-- Hidden Task Id Input for Edit State tracking -->
+        <input type="hidden" id="form-task-id">
+
+        <!-- Task title -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Task description</label>
+          <input type="text" id="form-title" required placeholder="e.g., Setup client review call" class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-250 dark:border-neutral-850 text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-neutral-950 transition">
+        </div>
+
+        <!-- Priority flag switcher -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Task Priority Level</label>
+          <div class="grid grid-cols-3 gap-2" id="form-priority-grid">
+            <button type="button" onclick="setFormPriority('low')" id="priority-btn-low" class="p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 capitalize font-extrabold transition border-neutral-250 dark:border-neutral-900 text-neutral-500 dark:text-neutral-400">
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-green-500"></i>
+              Normal
+            </button>
+            <button type="button" onclick="setFormPriority('medium')" id="priority-btn-medium" class="p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 capitalize font-extrabold transition border-neutral-250 dark:border-neutral-900 text-neutral-500 dark:text-neutral-400">
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-orange-500"></i>
+              Medium
+            </button>
+            <button type="button" onclick="setFormPriority('high')" id="priority-btn-high" class="p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 capitalize font-extrabold transition border-neutral-250 dark:border-neutral-900 text-neutral-500 dark:text-neutral-400">
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-red-500"></i>
+              High
+            </button>
+          </div>
+          <input type="hidden" id="form-priority" value="low">
+        </div>
+
+        <!-- Categories custom badges -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Task Category Tag</label>
+          <div class="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none" id="form-categories-list"></div>
+          <input type="hidden" id="form-category" value="Work">
+        </div>
+
+        <!-- Timeline Slots -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Day</label>
+            <select id="form-day" class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 text-xs text-neutral-850 dark:text-neutral-200 focus:outline-none">
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday" selected>Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Timing Slot</label>
+            <select id="form-section" class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 text-xs text-neutral-850 dark:text-neutral-200 focus:outline-none">
+              <option value="Morning" selected>Morning</option>
+              <option value="Afternoon">Afternoon</option>
+              <option value="Evening">Evening</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Start Time and Duration inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Start Time</label>
+            <input type="text" id="form-time" placeholder="e.g., 09:30 AM" class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 text-xs text-neutral-850 dark:text-neutral-200 focus:outline-none">
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Duration</label>
+            <input type="text" id="form-duration" placeholder="e.g., 45 min" class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 text-xs text-neutral-850 dark:text-neutral-200 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Note tag -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] uppercase tracking-wider text-neutral-400 font-extrabold">Label Status Note (Optional)</label>
+          <input type="text" id="form-label" placeholder="e.g., Yesterday, 7 days ago" class="w-full p-3.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 text-xs text-neutral-850 dark:text-neutral-200 focus:outline-none">
+        </div>
+
+        <!-- CTA action controls -->
+        <div class="pt-4 flex gap-3">
+          <button type="button" onclick="handleCloseModal()" class="flex-1 py-3.5 text-xs font-bold text-neutral-600 bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 rounded-xl hover:bg-neutral-200/50 transition">Cancel</button>
+          <button type="submit" class="flex-1 py-3.5 text-xs font-bold text-white bg-neutral-950 dark:bg-white dark:text-neutral-950 rounded-xl shadow-md hover:opacity-90 transition">Save Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT APP ENGINE ================= -->
+  <script>
+    const INITIAL_TASKS = [
+      { id: '1', title: 'Attend team meeting', priority: 'medium', category: 'Work', section: 'Morning', day: 'Monday', time: '10:00 AM', date: '2026-02-16', completed: false, duration: '45 min' },
+      { id: '2', title: 'Reply to client email', priority: 'high', category: 'Work', section: 'Morning', day: 'Monday', time: '11:30 AM', date: '2026-02-16', completed: false, duration: '15 min' },
+      { id: '3', title: 'Coinbase: design user registration process', priority: 'low', category: 'Design', section: 'Morning', day: 'Friday', time: '09:30 AM', date: '2026-02-20', completed: false, duration: '50 min' },
+      { id: '4', title: 'Apple: review and provide feedback on wireframes', priority: 'medium', category: 'Design', section: 'Morning', day: 'Friday', time: '10:45 AM', date: '2026-02-20', completed: true, duration: '45 min' },
+      { id: '5', title: 'Shopify: mood board for ecommerce template', priority: 'low', category: 'Design', section: 'Afternoon', day: 'Friday', time: '02:00 PM', date: '2026-02-20', completed: false, duration: '30 min' },
+      { id: '6', title: 'Wake up and morning stretches', priority: 'low', category: 'Health', section: 'Morning', day: 'Friday', time: '07:00 AM', date: '2026-02-20', completed: true, duration: '10 min' },
+      { id: '7', title: 'Design Crit Discussion Group', priority: 'medium', category: 'Design', section: 'Morning', day: 'Friday', time: '11:00 AM', date: '2026-02-20', completed: false, duration: '60 min' },
+      { id: '8', title: 'Finish UI Design assignment', priority: 'high', category: 'Study', section: 'Afternoon', day: 'Friday', time: '04:30 PM', date: '2026-02-20', completed: false, label: 'Yesterday', duration: '120 min' },
+      { id: '9', title: 'Make delicious homemade pesto pasta', priority: 'low', category: 'Personal', section: 'Evening', day: 'Friday', time: '07:30 PM', date: '2026-02-20', completed: false, label: '7 days ago', duration: '40 min' }
+    ];
+
+    const CATEGORIES = ['Personal', 'Work', 'Study', 'Health', 'Design', 'Shopping', 'Finance', 'Travel', 'Fitness'];
+    const WEEK_DAYS = [
+      { name: 'Mon', num: '16', dayName: 'Monday', dateStr: '2026-02-16' },
+      { name: 'Tue', num: '17', dayName: 'Tuesday', dateStr: '2026-02-17' },
+      { name: 'Wed', num: '18', dayName: 'Wednesday', dateStr: '2026-02-18' },
+      { name: 'Thu', num: '19', dayName: 'Thursday', dateStr: '2026-02-19' },
+      { name: 'Fri', num: '20', dayName: 'Friday', dateStr: '2026-02-20' },
+      { name: 'Sat', num: '21', dayName: 'Saturday', dateStr: '2026-02-21' },
+      { name: 'Sun', num: '22', dayName: 'Sunday', dateStr: '2026-02-22' },
+    ];
+
+    // Core Active App States
+    let state = {
+      tasks: [...INITIAL_TASKS],
+      activeTab: 'home',
+      selectedDay: 'Friday',
+      searchQuery: '',
+      isDarkMode: false,
+      isSidebarCollapsed: false,
+      notificationsEnabled: true,
+      openTaskCardOptionsId: null,
+      
+      // Dynamic profile status
+      profile: {
+        name: 'John Doe',
+        plan: 'Premium Workspace',
+        avatar: '' // Base64 dataURL once cropped
+      }
+    };
+
+    // Cropper instance tracker
+    let cropperInstance = null;
+
+    // Initialize layout, real-time clock and dismiss splash screen loader
+    window.addEventListener('DOMContentLoaded', () => {
+      // Dynamic Day matching real current day name
+      const todayIndex = new Date().getDay();
+      const daysList = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      state.selectedDay = daysList[todayIndex];
+
+      renderNavs();
+      renderActiveTab();
+      setupCategoriesInForm();
+      updateProfileUI();
+      
+      // Start Real-Time and Date Ticker loops
+      updateRealTimeAndDate();
+      setInterval(updateRealTimeAndDate, 1000);
+
+      // Gracefully fade out splash screen loader after premium duration
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+          splash.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => splash.remove(), 700);
+        }
+      }, 1800);
+
+      lucide.createIcons();
+    });
+
+    // Real-Time and Date update function
+    function updateRealTimeAndDate() {
+      const now = new Date();
+      
+      // Standard Date formatting
+      const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+      
+      // Time formatting
+      const timeOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true };
+      const formattedTime = now.toLocaleTimeString('en-US', timeOptions);
+
+      // Tick to DOM
+      const timeContainer = document.getElementById('live-time-ticker');
+      const dateContainer = document.getElementById('live-date-ticker');
+      
+      if (timeContainer) timeContainer.textContent = formattedTime;
+      if (dateContainer) dateContainer.textContent = formattedDate;
+    }
+
+    // Toggle Dark Mode
+    function toggleDarkMode() {
+      state.isDarkMode = !state.isDarkMode;
+      const html = document.documentElement;
+      const label = document.getElementById('sidebar-theme-label');
+      
+      if (state.isDarkMode) {
+        html.classList.add('dark');
+        if (label) label.textContent = 'Dark';
+      } else {
+        html.classList.remove('dark');
+        if (label) label.textContent = 'Light';
+      }
+      showToast(state.isDarkMode ? 'Immersive Dark Mode enabled' : 'Light Mode activated');
+    }
+
+    // Modern custom overlay Toast notification alert triggers
+    function showToast(message, type = 'success') {
+      const portal = document.getElementById('toast-portal');
+      const id = Date.now();
+      
+      const toast = document.createElement('div');
+      toast.id = `toast-${id}`;
+      toast.className = `p-4 rounded-2xl shadow-xl border flex items-center gap-3 animate-slide-down pointer-events-auto transform transition-all duration-300 ${
+        type === 'success' 
+          ? 'bg-neutral-900 text-white border-neutral-800 dark:bg-white dark:text-neutral-950' 
+          : type === 'error'
+          ? 'bg-red-50 text-red-950 border-red-200 dark:bg-red-950/90 dark:text-red-100 dark:border-red-900'
+          : 'bg-blue-50 text-blue-950 border-blue-200 dark:bg-blue-950/90 dark:text-blue-100 dark:border-blue-900'
+      }`;
+
+      const iconName = type === 'success' ? 'check-circle-2' : 'alert-circle';
+      const iconColor = type === 'success' ? 'text-emerald-500' : 'text-amber-500';
+
+      toast.innerHTML = `
+        <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
+        <p class="text-xs font-semibold tracking-tight">${message}</p>
+      `;
+
+      portal.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Tab switcher trigger
+    function setTab(tabId) {
+      state.activeTab = tabId;
+      renderActiveTab();
+      renderNavs();
+      lucide.createIcons();
+    }
+
+    // Set selected active planning day
+    function selectDay(dayName) {
+      state.selectedDay = dayName;
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Toggle Task completion check-box
+    function toggleComplete(taskId) {
+      state.tasks = state.tasks.map(t => {
+        if (t.id === taskId) {
+          const nextState = !t.completed;
+          showToast(nextState ? 'Goal checked off successfully' : 'Task marked as pending', 'info');
+          return { ...t, completed: nextState };
+        }
+        return t;
+      });
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Delete existing task
+    function deleteTask(taskId) {
+      state.tasks = state.tasks.filter(t => t.id !== taskId);
+      showToast('Scheduled item successfully removed', 'info');
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Toggle custom card dropdown options
+    function toggleCardOptions(taskId) {
+      state.openTaskCardOptionsId = state.openTaskCardOptionsId === taskId ? null : taskId;
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Render Side Panel Navlinks & Mobile bar links
+    function renderNavs() {
+      const sidebarNav = document.getElementById('sidebar-nav');
+      const mobileDock = document.getElementById('mobile-dock');
+
+      const navItems = [
+        { id: 'home', text: 'Home Tasklist', icon: 'home' },
+        { id: 'calendar', text: 'Weekly Calendar', icon: 'calendar-days' },
+        { id: 'search', text: 'Find Task', icon: 'search' },
+        { id: 'stats', text: 'Statistics', icon: 'bar-chart-2' },
+        { id: 'settings', text: 'Settings', icon: 'settings' }
+      ];
+
+      // Side Panel Setup
+      sidebarNav.innerHTML = navItems.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="setTab('${item.id}')" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+            active 
+              ? 'bg-neutral-100 dark:bg-neutral-900 text-neutral-950 dark:text-white' 
+              : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900/40'
+          }">
+            <i data-lucide="${item.icon}" class="w-[18px] h-[18px] ${active ? 'text-neutral-950 dark:text-white' : 'text-neutral-400'}"></i>
+            <span>${item.text}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Mobile Capsule Setup
+      mobileDock.innerHTML = navItems.map(item => {
+        const active = state.activeTab === item.id;
+        return `
+          <button onclick="setTab('${item.id}')" class="p-3 rounded-2xl transition-all duration-300 ${
+            active ? 'text-white scale-110 bg-white/10' : 'text-neutral-500 hover:text-neutral-300'
+          }" title="${item.text}">
+            <i data-lucide="${item.icon}" class="w-[18px] h-[18px]"></i>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // Helper to extract initials from name
+    function getInitials(name) {
+      if (!name) return 'JD';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+
+    // Update Profile elements dynamically across sidebar and headers
+    function updateProfileUI() {
+      const initials = getInitials(state.profile.name);
+      
+      // Update sidebar avatar elements
+      const sidebarAvatar = document.getElementById('sidebar-avatar');
+      if (sidebarAvatar) {
+        if (state.profile.avatar) {
+          sidebarAvatar.innerHTML = `<img src="${state.profile.avatar}" class="w-full h-full rounded-full object-cover">`;
+        } else {
+          sidebarAvatar.innerHTML = initials;
+        }
+      }
+
+      // Update sidebar profile names
+      const sidebarNameNode = document.querySelector('#sidebar-profile-text h4');
+      const sidebarPlanNode = document.querySelector('#sidebar-profile-text p');
+      if (sidebarNameNode) sidebarNameNode.textContent = state.profile.name;
+      if (sidebarPlanNode) sidebarPlanNode.textContent = state.profile.plan;
+
+      // Update Top sticky bar avatar
+      const topBarAvatar = document.getElementById('topbar-avatar');
+      if (topBarAvatar) {
+        if (state.profile.avatar) {
+          topBarAvatar.innerHTML = `<img src="${state.profile.avatar}" class="w-full h-full rounded-full object-cover">`;
+        } else {
+          topBarAvatar.innerHTML = initials;
+        }
+      }
+
+      // Sync settings tab active render states
+      if (state.activeTab === 'settings') {
+        renderActiveTab();
+        lucide.createIcons();
+      }
+    }
+
+    // Render dynamic active views with premium styling
+    function renderActiveTab() {
+      const contentHost = document.getElementById('tab-content');
+      const totalCompleted = state.tasks.filter(t => t.completed).length;
+      const completionRate = state.tasks.length ? Math.round((totalCompleted / state.tasks.length) * 100) : 0;
+      const filteredTasks = state.tasks.filter(t => t.day === state.selectedDay);
+
+      if (state.activeTab === 'home') {
+        // --- SCREEN 1: HOME WORKSPACE ---
+        let searchedTasks = [];
+        if (state.searchQuery.trim()) {
+          searchedTasks = state.tasks.filter(t => 
+            t.title.toLowerCase().includes(state.searchQuery.toLowerCase()) || 
+            t.category.toLowerCase().includes(state.searchQuery.toLowerCase())
+          );
+        }
+
+        // Generate day button filters
+        let dayCarouselHtml = '';
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].forEach(day => {
+          const dayCount = state.tasks.filter(t => t.day === day).length;
+          const active = state.selectedDay === day;
+          dayCarouselHtml += `
+            <button onclick="selectDay('${day}')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all duration-300 flex items-center gap-2 ${
+              active 
+                ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-sm scale-105' 
+                : 'bg-white hover:bg-neutral-100 text-neutral-500 dark:bg-[#0f0f0f] dark:text-neutral-400 border border-neutral-250/20 dark:border-neutral-900'
+            }">
+              ${day}
+              <span class="text-[10px] px-1.5 py-0.5 rounded-md ${active ? 'bg-white/20 text-white dark:bg-neutral-200 dark:text-neutral-950' : 'bg-neutral-150 dark:bg-neutral-900 text-neutral-500'}">
+                ${dayCount}
+              </span>
+            </button>
+          `;
+        });
+
+        // Generate section tasks HTML cleanly
+        let tasksContainerHtml = '';
+        if (state.searchQuery) {
+          tasksContainerHtml = `
+            <div class="space-y-3">
+              <div class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest pl-1">
+                Filtering results for "${state.searchQuery}"
+              </div>
+              ${searchedTasks.length === 0 ? `
+                <div class="p-8 text-center bg-white dark:bg-[#0f0f0f] rounded-2xl border border-neutral-200/40 dark:border-neutral-900">
+                  <p class="text-xs text-neutral-400">No matching keyword found in tasks list.</p>
+                </div>
+              ` : searchedTasks.map(t => getTaskCardHtml(t)).join('')}
+            </div>
+          `;
+        } else if (filteredTasks.length === 0) {
+          tasksContainerHtml = `
+            <div class="flex flex-col items-center justify-center py-16 text-center bg-white dark:bg-[#0f0f0f] rounded-3xl border border-neutral-150 dark:border-neutral-900 p-6">
+              <div class="w-16 h-16 rounded-full bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center text-neutral-400 mb-4 select-none">
+                <i data-lucide="sparkles" class="w-8 h-8"></i>
+              </div>
+              <h3 class="text-sm font-black text-neutral-800 dark:text-neutral-200">Clean slate for ${state.selectedDay}</h3>
+              <p class="text-xs text-neutral-400 dark:text-neutral-500 mt-1 max-w-sm">No workspace items scheduled. Tap below to create goals.</p>
+              <button onclick="handleOpenAddTask()" class="mt-5 px-5 py-2.5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 text-xs font-bold rounded-xl shadow hover:opacity-90 active:scale-95 transition">
+                Create First Task
+              </button>
+            </div>
+          `;
+        } else {
+          let sectionsListHtml = '';
+          ['Morning', 'Afternoon', 'Evening'].forEach(section => {
+            const sectionTasks = filteredTasks.filter(t => t.section === section && !t.completed);
+            if (sectionTasks.length > 0) {
+              sectionsListHtml += `
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 dark:text-neutral-500 pl-1 select-none">
+                    <span>${section}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-800"></span>
+                    <span>${sectionTasks.length} Scheduled</span>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    ${sectionTasks.map(t => getTaskCardHtml(t)).join('')}
+                  </div>
+                </div>
+              `;
+            }
+          });
+
+          // Completed sub-group
+          const completedTasks = filteredTasks.filter(t => t.completed);
+          let completedSubGroupHtml = '';
+          if (completedTasks.length > 0) {
+            completedSubGroupHtml = `
+              <div class="space-y-3 mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-900">
+                <div class="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 dark:text-neutral-500 pl-1">
+                  Completed Goals (${completedTasks.length})
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  ${completedTasks.map(t => getTaskCardHtml(t)).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          tasksContainerHtml = `
+            <div class="space-y-6">
+              ${sectionsListHtml}
+              ${completedSubGroupHtml}
+            </div>
+          `;
+        }
+
+        // Timeline listing html
+        let timelineListHtml = '';
+        if (filteredTasks.length === 0) {
+          timelineListHtml = `<p class="text-[11px] text-neutral-400">No items listed for schedule timeline.</p>`;
+        } else {
+          filteredTasks.forEach(t => {
+            timelineListHtml += `
+              <div class="flex gap-3 text-xs">
+                <div class="text-[10px] font-extrabold text-neutral-400 w-12 pt-0.5">${t.time}</div>
+                <div class="flex-1 min-w-0">
+                  <h5 class="font-semibold truncate ${t.completed ? 'line-through text-neutral-400' : ''}">${t.title}</h5>
+                  <p class="text-[9px] text-neutral-400 capitalize">${t.priority} • ${t.category}</p>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        contentHost.innerHTML = `
+          <div class="animate-fade-in grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Side Core Work List -->
+            <div class="lg:col-span-8 space-y-6">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2.5">
+                    <h2 class="text-4xl font-extrabold tracking-tighter text-neutral-900 dark:text-white uppercase">
+                      ${state.selectedDay}
+                    </h2>
+                  </div>
+                  <p class="text-xs text-neutral-400 mt-1 font-semibold tracking-wide uppercase">
+                    Workspace Scheduled Queue
+                  </p>
+                </div>
+
+                <!-- Quick Inline search filter input -->
+                <div class="relative w-full md:w-64">
+                  <i data-lucide="search" class="absolute left-3 top-3 text-neutral-400 w-3.5 h-3.5"></i>
+                  <input 
+                    type="text" 
+                    id="home-search-input"
+                    placeholder="Quick filter tasks..." 
+                    value="${state.searchQuery}"
+                    oninput="handleHomeSearch(this.value)"
+                    class="w-full p-2.5 pl-8 text-xs font-semibold rounded-xl bg-white dark:bg-[#0f0f0f] border border-neutral-200 dark:border-neutral-900 focus:outline-none"
+                  >
+                </div>
+              </div>
+
+              <!-- Day Filter Carousel -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-3 border-b border-neutral-200/50 dark:border-neutral-900 scrollbar-none">
+                ${dayCarouselHtml}
+              </div>
+
+              <!-- Tasks representation render block -->
+              <div class="space-y-6">
+                ${tasksContainerHtml}
+              </div>
+            </div>
+
+            <!-- Right-Side Snapshot Dashboard Glance Panel -->
+            <div class="hidden lg:block lg:col-span-4 space-y-6">
+              <!-- Completion widget card -->
+              <div class="p-5 bg-white dark:bg-[#0f0f0f] rounded-3xl border border-neutral-250/20 dark:border-neutral-900 space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold uppercase tracking-widest text-neutral-400">Day Progress</span>
+                  <span class="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Active</span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                  <div class="relative w-14 h-14">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="16" class="text-neutral-100 dark:text-neutral-900" stroke-width="3.5" fill="none" stroke="currentColor"></circle>
+                      <circle cx="18" cy="18" r="16" class="text-neutral-950 dark:text-white" stroke-width="3.5" stroke-dasharray="${completionRate}, 100" stroke-linecap="round" fill="none" stroke="currentColor"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center text-[10px] font-black">
+                      ${completionRate}%
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-neutral-800 dark:text-neutral-200">Goal Completion Rate</h4>
+                    <p class="text-[10px] text-neutral-400 mt-0.5">${totalCompleted} of ${state.tasks.length} items checked off</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chronicle Schedule Mini-Timeline -->
+              <div class="p-5 bg-white dark:bg-[#0f0f0f] rounded-3xl border border-neutral-250/20 dark:border-neutral-900 space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold uppercase tracking-widest text-neutral-400">Chronological Timeline</span>
+                  <i data-lucide="calendar" class="text-neutral-400 w-3.5 h-3.5"></i>
+                </div>
+                <div class="space-y-3 max-h-64 overflow-y-auto scrollbar-none pr-1">
+                  ${timelineListHtml}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.activeTab === 'calendar') {
+        // --- SCREEN 2: CALENDAR TIMELINE ---
+        let dayGridHtml = '';
+        WEEK_DAYS.forEach(day => {
+          const isActive = state.selectedDay === day.dayName;
+          const dayTasks = state.tasks.filter(t => t.day === day.dayName);
+          const activeClass = isActive 
+            ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 shadow-md scale-102' 
+            : 'hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-600 dark:text-neutral-400';
+          
+          let indicatorSpanHtml = '';
+          if (dayTasks.length > 0) {
+            const dotColor = isActive ? 'bg-white dark:bg-neutral-900' : 'bg-neutral-950 dark:bg-white';
+            indicatorSpanHtml = `<span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>`;
+          }
+
+          dayGridHtml += `
+            <button onclick="selectDay('${day.dayName}')" class="p-3 rounded-2xl flex flex-col items-center gap-1.5 transition ${activeClass}">
+              <span class="text-[10px] uppercase tracking-widest opacity-60 font-bold">${day.name}</span>
+              <span class="text-sm font-black">${day.num}</span>
+              ${indicatorSpanHtml}
+            </button>
+          `;
+        });
+
+        let timelineListHtml = '';
+        if (filteredTasks.length === 0) {
+          timelineListHtml = `
+            <div class="py-12 text-center">
+              <p class="text-xs text-neutral-400">No scheduled timeline items to track for this specific date.</p>
+            </div>
+          `;
+        } else {
+          filteredTasks.forEach(t => {
+            const completedColorClass = t.completed ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-neutral-950 dark:bg-white';
+            const textLineClass = t.completed ? 'line-through text-neutral-400' : 'text-neutral-800 dark:text-neutral-100';
+            
+            let priorityBadgeColorClass = 'bg-green-50 text-green-600 dark:bg-green-950/20 dark:text-green-400';
+            if (t.priority === 'high') {
+              priorityBadgeColorClass = 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400';
+            } else if (t.priority === 'medium') {
+              priorityBadgeColorClass = 'bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400';
+            }
+
+            timelineListHtml += `
+              <div class="relative">
+                <div class="absolute -left-[31px] top-1.5 w-[11px] h-[11px] rounded-full border-2 border-white dark:border-[#090909] transition-colors ${completedColorClass}"></div>
+                <div class="p-4 rounded-2xl bg-[#fafafa] dark:bg-[#141414] border border-neutral-100 dark:border-neutral-900 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 text-[10px] font-extrabold text-neutral-400 uppercase">
+                      <i data-lucide="clock" class="w-2.5 h-2.5"></i>
+                      <span>${t.time}</span>
+                      <span>•</span>
+                      <span>${t.duration || '30 min'}</span>
+                    </div>
+                    <h4 class="text-xs font-bold ${textLineClass}">
+                      ${t.title}
+                    </h4>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[9px] font-bold px-2 py-0.5 bg-neutral-100 dark:bg-neutral-900 rounded text-neutral-500 uppercase tracking-widest">
+                      ${t.category}
+                    </span>
+                    <span class="text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest ${priorityBadgeColorClass}">
+                      ${t.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        contentHost.innerHTML = `
+          <div class="animate-fade-in space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Schedule Calendar</h1>
+                <p class="text-xs text-neutral-400 mt-1">Plan and coordinate weekly performance lists</p>
+              </div>
+              <div class="flex items-center gap-2 bg-white dark:bg-[#0f0f0f] border border-neutral-200 dark:border-neutral-900 p-1.5 rounded-xl self-start">
+                <button class="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-lg"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i></button>
+                <span class="text-xs font-bold px-3">February 2026</span>
+                <button class="p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded-lg"><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+
+            <!-- Calendar Row Grid -->
+            <div class="grid grid-cols-7 gap-2 bg-white dark:bg-[#0f0f0f] p-4 rounded-3xl border border-neutral-250/20 dark:border-neutral-900">
+              ${dayGridHtml}
+            </div>
+
+            <!-- Chronicle Schedule breakdown -->
+            <div class="bg-white dark:bg-[#0f0f0f] p-6 rounded-3xl border border-neutral-250/20 dark:border-neutral-900 space-y-6">
+              <div class="flex items-center justify-between pl-1 pb-3 border-b border-neutral-100 dark:border-neutral-900">
+                <h3 class="text-sm font-extrabold uppercase tracking-wide text-neutral-400">Chronicle Planner (${state.selectedDay})</h3>
+                <span class="text-[10px] font-bold px-3 py-1 rounded-full bg-neutral-50 dark:bg-neutral-900 text-neutral-500">
+                  ${filteredTasks.length} Agenda Items
+                </span>
+              </div>
+              <div class="relative pl-6 border-l-2 border-neutral-200 dark:border-neutral-800 space-y-6">
+                ${timelineListHtml}
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.activeTab === 'search') {
+        // --- SCREEN 3: SEARCH PORTAL ---
+        let searchedTasks = [];
+        if (state.searchQuery.trim()) {
+          searchedTasks = state.tasks.filter(t => 
+            t.title.toLowerCase().includes(state.searchQuery.toLowerCase()) || 
+            t.category.toLowerCase().includes(state.searchQuery.toLowerCase()) || 
+            t.priority.toLowerCase() === state.searchQuery.toLowerCase()
+          );
+        }
+
+        // Generate tags badges
+        let tagsBadgesHtml = '';
+        CATEGORIES.forEach(cat => {
+          tagsBadgesHtml += `
+            <button onclick="handleSearchTabInput('${cat}')" class="px-3 py-1.5 bg-neutral-50 dark:bg-neutral-900 rounded-xl text-xs font-semibold hover:bg-neutral-100 transition">
+              #${cat.toLowerCase()}
+            </button>
+          `;
+        });
+
+        // Generate priority switches
+        let priorityButtonsHtml = '';
+        ['high', 'medium', 'low'].forEach(pri => {
+          const colorClass = pri === 'high' ? 'text-red-500' : pri === 'medium' ? 'text-orange-500' : 'text-green-500';
+          priorityButtonsHtml += `
+            <button onclick="handleSearchTabInput('${pri}')" class="p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 text-xs font-bold hover:bg-neutral-100 transition flex items-center justify-center gap-1.5 capitalize">
+              <i data-lucide="flag" class="w-3 h-3 ${colorClass}"></i>
+              ${pri}
+            </button>
+          `;
+        });
+
+        let resultsHostHtml = '';
+        if (!state.searchQuery) {
+          resultsHostHtml = `
+            <!-- Suggestion widgets -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              <div class="bg-white dark:bg-[#0f0f0f] p-5 rounded-3xl border border-neutral-200/40 dark:border-neutral-900 space-y-3">
+                <h3 class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest">Suggested Search Tags</h3>
+                <div class="flex flex-wrap gap-2">
+                  ${tagsBadgesHtml}
+                </div>
+              </div>
+
+              <div class="bg-white dark:bg-[#0f0f0f] p-5 rounded-3xl border border-neutral-200/40 dark:border-neutral-900 space-y-3">
+                <h3 class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest">Filter by Flag Priority</h3>
+                <div class="grid grid-cols-3 gap-2">
+                  ${priorityButtonsHtml}
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          resultsHostHtml = `
+            <!-- Results block -->
+            <div class="space-y-4">
+              <div class="flex justify-between items-center text-xs font-bold text-neutral-400 pb-2 border-b border-neutral-150 dark:border-neutral-900">
+                <span>INDEX RESULTS</span>
+                <span>${searchedTasks.length} INDEXED MATCHES</span>
+              </div>
+              ${searchedTasks.length === 0 ? `
+                <div class="py-12 text-center bg-white dark:bg-[#0f0f0f] rounded-3xl border border-neutral-200/40 dark:border-neutral-900">
+                  <div class="w-12 h-12 bg-neutral-50 dark:bg-neutral-900 rounded-full flex items-center justify-center mx-auto text-lg mb-2">🔍</div>
+                  <h4 class="text-xs font-bold">No results found</h4>
+                  <p class="text-[11px] text-neutral-400 mt-1">Try refining search parameters or categories.</p>
+                </div>
+              ` : `
+                <div class="grid grid-cols-1 gap-3">
+                  ${searchedTasks.map(t => getTaskCardHtml(t)).join('')}
+                </div>
+              `}
+            </div>
+          `;
+        }
+
+        contentHost.innerHTML = `
+          <div class="animate-fade-in space-y-6 max-w-2xl mx-auto">
+            <div>
+              <h1 class="text-3xl font-extrabold tracking-tight">Omni Search</h1>
+              <p class="text-xs text-neutral-400 mt-1">Look up schedules across categories, priorities, and descriptions</p>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-4 top-4 text-neutral-400 w-[18px] h-[18px]"></i>
+              <input 
+                type="text" 
+                id="search-tab-input"
+                placeholder="Type to search design assignments, meetings, fitness goals..." 
+                value="${state.searchQuery}"
+                oninput="handleSearchTabInput(this.value)"
+                class="w-full p-4 pl-12 rounded-2xl bg-white dark:bg-[#0f0f0f] border border-neutral-250/20 dark:border-neutral-900 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-neutral-900 dark:focus:ring-white transition"
+              >
+            </div>
+
+            ${resultsHostHtml}
+          </div>
+        `;
+
+      } else if (state.activeTab === 'stats') {
+        // --- SCREEN 4: DETAILED STATS SCREEN ---
+        let barsHtml = '';
+        [
+          { label: 'Mon', completion: '60%', active: false },
+          { label: 'Tue', completion: '40%', active: false },
+          { label: 'Wed', completion: '80%', active: false },
+          { label: 'Thu', completion: '70%', active: false },
+          { label: 'Fri', completion: '95%', active: true },
+          { label: 'Sat', completion: '30%', active: false },
+          { label: 'Sun', completion: '50%', active: false },
+        ].forEach(bar => {
+          const bgActiveColor = bar.active ? 'bg-neutral-950 dark:bg-white' : 'bg-neutral-200/70 dark:bg-neutral-800';
+          barsHtml += `
+            <div class="flex-1 flex flex-col items-center gap-3 h-full justify-end">
+              <div 
+                style="height: ${bar.completion}" 
+                class="w-full rounded-xl transition-all duration-500 hover:opacity-80 cursor-pointer ${bgActiveColor}"
+              ></div>
+              <span class="text-[11px] font-bold text-neutral-400">${bar.label}</span>
+            </div>
+          `;
+        });
+
+        contentHost.innerHTML = `
+          <div class="animate-fade-in space-y-6">
+            <div>
+              <h1 class="text-3xl font-extrabold tracking-tight">Metrics & Insights</h1>
+              <p class="text-xs text-neutral-400 mt-1">Track and audit your goal completion dynamics</p>
+            </div>
+
+            <!-- Metrics indicators -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="p-6 rounded-3xl bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 flex flex-col justify-between h-40">
+                <span class="text-[10px] font-extrabold tracking-widest uppercase opacity-70">Goal Completion Rate</span>
+                <div>
+                  <h3 class="text-4xl font-black">${completionRate}%</h3>
+                  <p class="text-[11px] text-neutral-300 dark:text-neutral-600 mt-1">Completion target: 80%</p>
+                </div>
+              </div>
+
+              <div class="p-6 rounded-3xl bg-white dark:bg-[#0f0f0f] border border-neutral-200/40 dark:border-neutral-900 flex flex-col justify-between h-40">
+                <span class="text-[10px] font-extrabold tracking-widest text-neutral-400 uppercase">Archived Tasks</span>
+                <div>
+                  <h3 class="text-4xl font-black">${totalCompleted} Done</h3>
+                  <p class="text-[11px] text-emerald-500 font-extrabold mt-1">↑ Actively productive</p>
+                </div>
+              </div>
+
+              <div class="p-6 rounded-3xl bg-white dark:bg-[#0f0f0f] border border-neutral-200/40 dark:border-neutral-900 flex flex-col justify-between h-40">
+                <span class="text-[10px] font-extrabold tracking-widest text-neutral-400 uppercase">Scheduled Focus</span>
+                <div>
+                  <h3 class="text-4xl font-black">${state.tasks.length - totalCompleted} Pending</h3>
+                  <p class="text-[11px] text-amber-500 font-extrabold mt-1">Focus pipeline</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Graph display column framework -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div class="lg:col-span-8 p-6 bg-white dark:bg-[#0f0f0f] rounded-3xl border border-neutral-200/40 dark:border-neutral-900 space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-neutral-400 uppercase tracking-widest">Weekly Performance Insights</span>
+                  <span class="text-[10px] font-semibold text-neutral-400">Target metrics achieved</span>
+                </div>
+                <div class="h-44 flex items-end justify-between gap-3 pt-6 border-b border-neutral-100 dark:border-neutral-900 pb-2">
+                  ${barsHtml}
+                </div>
+              </div>
+
+              <div class="lg:col-span-4 p-6 bg-white dark:bg-[#0f0f0f] rounded-3xl border border-neutral-200/40 dark:border-neutral-900 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <span class="text-[10px] font-extrabold tracking-widest text-neutral-400 uppercase">Productivity Status</span>
+                  <h4 class="text-sm font-bold mt-2">Momentum Score</h4>
+                  <p class="text-xs text-neutral-400">Fantastic! Your focus concentration level is trending higher than last week's average timeline by 12.4%.</p>
+                </div>
+                <div class="pt-4 flex items-center gap-2 text-xs font-bold text-neutral-800 dark:text-neutral-100">
+                  <i data-lucide="trending-up" class="text-emerald-500 w-4 h-4"></i>
+                  <span>Focus Score: Excellent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.activeTab === 'settings') {
+        // --- SCREEN 5: APP PREFERENCES AND SETTINGS ---
+        const darkBtnClass = state.isDarkMode ? 'bg-neutral-950 dark:bg-white' : 'bg-neutral-300';
+        const darkThumbClass = state.isDarkMode ? 'translate-x-4' : 'translate-x-0';
+        
+        const sideBtnClass = state.isSidebarCollapsed ? 'bg-neutral-950 dark:bg-white' : 'bg-neutral-300';
+        const sideThumbClass = state.isSidebarCollapsed ? 'translate-x-4' : 'translate-x-0';
+        
+        const notifyBtnClass = state.notificationsEnabled ? 'bg-neutral-950 dark:bg-white' : 'bg-neutral-300';
+        const notifyThumbClass = state.notificationsEnabled ? 'translate-x-4' : 'translate-x-0';
+
+        const initials = getInitials(state.profile.name);
+        const avatarHtml = state.profile.avatar 
+          ? `<img src="${state.profile.avatar}" class="w-full h-full rounded-full object-cover">`
+          : initials;
+
+        contentHost.innerHTML = `
+          <div class="animate-fade-in space-y-6 max-w-2xl mx-auto">
+            <div>
+              <h1 class="text-3xl font-extrabold tracking-tight">Workspace Settings</h1>
+              <p class="text-xs text-neutral-400 mt-1">Configure your sync details and interface view preferences</p>
+            </div>
+
+            <div class="space-y-6">
+              <!-- Clickable Profile settings Card -->
+              <div onclick="handleOpenProfileModal()" class="bg-white dark:bg-[#0f0f0f] p-4 rounded-3xl border border-neutral-200/40 dark:border-neutral-900 flex items-center justify-between cursor-pointer group hover:opacity-90 transition-all">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 bg-neutral-100 dark:bg-neutral-900 rounded-full flex items-center justify-center font-black overflow-hidden border border-neutral-200/40 dark:border-neutral-800">
+                    ${avatarHtml}
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold group-hover:text-neutral-950 dark:group-hover:text-white transition-colors">${state.profile.name}</h4>
+                    <p class="text-[10px] text-neutral-400 font-medium">${state.profile.plan} • Edit Profile</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold text-neutral-500 bg-neutral-100 dark:bg-neutral-900 px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <i data-lucide="edit-3" class="w-2.5 h-2.5"></i>
+                  Manage
+                </span>
+              </div>
+
+              <!-- Aesthetics Options -->
+              <div class="space-y-1">
+                <span class="text-[10px] uppercase tracking-widest font-extrabold text-neutral-400 pl-1">Aesthetics Preferences</span>
+                <div class="bg-white dark:bg-[#0f0f0f] rounded-2xl border border-neutral-200/40 dark:border-neutral-900 divide-y divide-neutral-100 dark:divide-neutral-900/60 overflow-hidden text-xs">
+                  
+                  <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3 font-semibold">
+                      <i data-lucide="moon" class="text-neutral-400 w-3.5 h-3.5"></i>
+                      <span>Force Dark Interface Theme</span>
+                    </div>
+                    <button onclick="toggleDarkMode()" class="w-10 h-6 rounded-full p-[2px] transition-colors ${darkBtnClass}">
+                      <div class="w-5 h-5 rounded-full bg-white dark:bg-neutral-950 transition-transform ${darkThumbClass}"></div>
+                    </button>
+                  </div>
+
+                  <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3 font-semibold">
+                      <i data-lucide="sliders" class="text-neutral-400 w-3.5 h-3.5"></i>
+                      <span>Collapse Side Navigation Panel</span>
+                    </div>
+                    <button onclick="toggleSidebarCollapse()" class="w-10 h-6 rounded-full p-[2px] transition-colors ${sideBtnClass}">
+                      <div class="w-5 h-5 rounded-full bg-white dark:bg-neutral-950 transition-transform ${sideThumbClass}"></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Integration Settings -->
+              <div class="space-y-1">
+                <span class="text-[10px] uppercase tracking-widest font-extrabold text-neutral-400 pl-1">Workspace Integrity</span>
+                <div class="bg-white dark:bg-[#0f0f0f] rounded-2xl border border-neutral-200/40 dark:border-neutral-900 divide-y divide-neutral-100 dark:divide-neutral-900/60 overflow-hidden text-xs">
+                  
+                  <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3 font-semibold">
+                      <i data-lucide="bell" class="text-neutral-400 w-3.5 h-3.5"></i>
+                      <span>Push Notification Reminders</span>
+                    </div>
+                    <button onclick="toggleNotifications()" class="w-10 h-6 rounded-full p-[2px] transition-colors ${notifyBtnClass}">
+                      <div class="w-5 h-5 rounded-full bg-white dark:bg-neutral-950 transition-transform ${notifyThumbClass}"></div>
+                    </button>
+                  </div>
+
+                  <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3 font-semibold text-red-500">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                      <span>Wipe All Active Tasks history</span>
+                    </div>
+                    <button onclick="wipeWorkspaceHistory()" class="px-3 py-1.5 text-[10px] bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl border border-red-200">
+                      Wipe History
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-center pt-4">
+                <p class="text-[10px] font-black uppercase tracking-wider text-neutral-400">Todo Workspace App v2.0</p>
+                <p class="text-[9px] text-neutral-400 mt-1">Created for seamless Desktop & Mobile responsiveness</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Task Card Template Generator
+    function getTaskCardHtml(task) {
+      const isCompleted = task.completed;
+      const isOptionsOpen = state.openTaskCardOptionsId === task.id;
+
+      // Priority color mapping classes matching designs
+      let textCol = 'text-emerald-500';
+      let bgCol = 'bg-emerald-500/10';
+      let borderCol = 'border-emerald-250/30 dark:border-emerald-950/20';
+
+      if (task.priority === 'high') {
+        textCol = 'text-red-500';
+        bgCol = 'bg-red-500/10';
+        borderCol = 'border-red-200/60 dark:border-red-950/20';
+      } else if (task.priority === 'medium') {
+        textCol = 'text-orange-500';
+        bgCol = 'bg-orange-500/10';
+        borderCol = 'border-orange-200/60 dark:border-orange-950/20';
+      }
+
+      return `
+        <div class="relative group overflow-hidden w-full">
+          <div class="p-4 rounded-3xl transition-all duration-300 ${
+            isCompleted 
+              ? 'bg-neutral-100/50 dark:bg-neutral-900/40 opacity-70' 
+              : 'bg-white dark:bg-[#0f0f0f] border border-neutral-200/60 dark:border-neutral-900 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-none'
+          }">
+            
+            <div class="flex items-start gap-3.5">
+              <!-- Checkbox button -->
+              <button 
+                onclick="toggleComplete('${task.id}')"
+                class="w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 transition-all duration-300 active:scale-90 ${
+                  isCompleted 
+                    ? 'bg-neutral-950 border-neutral-950 text-white dark:bg-white dark:border-white dark:text-neutral-950' 
+                    : 'border-neutral-300 hover:border-neutral-500 dark:border-neutral-700'
+                }"
+              >
+                ${isCompleted ? '<i data-lucide="check" class="w-[11px] h-[11px] stroke-[3]"></i>' : ''}
+              </button>
+
+              <!-- Main details layout -->
+              <div class="flex-1 min-w-0 cursor-pointer" onclick="toggleCardOptions('${task.id}')">
+                <div class="flex items-start justify-between gap-1.5">
+                  <h3 class="text-xs font-bold leading-relaxed tracking-tight ${
+                    isCompleted ? 'line-through text-neutral-400 dark:text-neutral-500' : 'text-neutral-800 dark:text-neutral-200'
+                  }">
+                    ${task.title}
+                  </h3>
+                  
+                  ${task.label ? `
+                    <span class="text-[9px] font-bold text-neutral-400/80 bg-neutral-100 dark:bg-neutral-900 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                      ${task.label}
+                    </span>
+                  ` : ''}
+                </div>
+
+                <!-- Footer row markers -->
+                <div class="flex flex-wrap items-center gap-2 mt-2.5">
+                  <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[9px] font-extrabold uppercase tracking-widest ${textCol} ${bgCol} ${borderCol}">
+                    <i data-lucide="flag" class="w-2 h-2"></i>
+                    <span>${task.priority === 'low' ? 'Normal' : task.priority}</span>
+                  </div>
+
+                  ${task.category ? `
+                    <div class="flex items-center gap-1 text-[9px] font-extrabold text-neutral-400">
+                      <span># ${task.category.toLowerCase()}</span>
+                    </div>
+                  ` : ''}
+
+                  ${task.time ? `
+                    <div class="flex items-center gap-1 text-[9px] font-bold text-neutral-400/80 ml-1">
+                      <i data-lucide="clock" class="w-2 h-2"></i>
+                      <span>${task.time}</span>
+                      ${task.duration ? `<span class="opacity-60">(${task.duration})</span>` : ''}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Context drawers panel -->
+            ${isOptionsOpen ? `
+              <div class="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-900 flex justify-end gap-1.5 animate-slide-down">
+                <button
+                  onclick="handleOpenEditTask('${task.id}')"
+                  class="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200/70 text-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-850 dark:text-neutral-300 rounded-xl text-[10px] font-extrabold flex items-center gap-1 transition"
+                >
+                  <i data-lucide="edit-3" class="w-3 h-3"></i> Edit
+                </button>
+                <button
+                  onclick="deleteTask('${task.id}')"
+                  class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-400 rounded-xl text-[10px] font-extrabold flex items-center gap-1 transition"
+                >
+                  <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                </button>
+              </div>
+            ` : ''}
+
+          </div>
+        </div>
+      `;
+    }
+
+    // Filter implementation callback
+    function handleHomeSearch(query) {
+      state.searchQuery = query;
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Calendar & tab query search callback
+    function handleSearchTabInput(query) {
+      state.searchQuery = query;
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Collapse Sidebar Trigger
+    function toggleSidebarCollapse() {
+      state.isSidebarCollapsed = !state.isSidebarCollapsed;
+      const sidebar = document.getElementById('sidebar');
+      const brandText = document.getElementById('sidebar-brand-text');
+      const ctaText = document.getElementById('sidebar-cta-text');
+      const profileText = document.getElementById('sidebar-profile-text');
+      const themeBtn = document.getElementById('sidebar-theme-btn');
+
+      if (state.isSidebarCollapsed) {
+        sidebar.className = "hidden lg:flex flex-col justify-between p-6 border-r transition-all duration-300 bg-white dark:bg-[#0f0f0f] w-20 border-neutral-200/60 dark:border-neutral-900";
+        if (brandText) brandText.classList.add('hidden');
+        if (ctaText) ctaText.classList.add('hidden');
+        if (profileText) profileText.classList.add('hidden');
+        if (themeBtn) themeBtn.classList.add('hidden');
+      } else {
+        sidebar.className = "hidden lg:flex flex-col justify-between p-6 border-r transition-all duration-300 bg-white dark:bg-[#0f0f0f] w-64 border-neutral-200/60 dark:border-neutral-900";
+        if (brandText) brandText.classList.remove('hidden');
+        if (ctaText) ctaText.classList.remove('hidden');
+        if (profileText) profileText.classList.remove('hidden');
+        if (themeBtn) themeBtn.classList.remove('hidden');
+      }
+      renderActiveTab();
+    }
+
+    // Toggle push notifications toggle state
+    function toggleNotifications() {
+      state.notificationsEnabled = !state.notificationsEnabled;
+      showToast(state.notificationsEnabled ? 'Instant Reminders turned on' : 'Alert reminders silenced');
+      renderActiveTab();
+    }
+
+    // Wipe Tasks
+    function wipeWorkspaceHistory() {
+      state.tasks = [];
+      showToast('All schedules cleaned out successfully', 'info');
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // Setup Category selection badges in forms
+    function setupCategoriesInForm() {
+      const container = document.getElementById('form-categories-list');
+      container.innerHTML = CATEGORIES.map(cat => `
+        <button
+          type="button"
+          id="cat-badge-${cat}"
+          onclick="setFormCategory('${cat}')"
+          class="px-3.5 py-2 rounded-xl border whitespace-nowrap transition-all border-neutral-200 dark:border-neutral-850 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+        >
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    // Select form category callback
+    function setFormCategory(cat) {
+      document.getElementById('form-category').value = cat;
+      CATEGORIES.forEach(item => {
+        const btn = document.getElementById(`cat-badge-${item}`);
+        if (item === cat) {
+          btn.className = "px-3.5 py-2 rounded-xl border whitespace-nowrap transition-all bg-neutral-950 text-white dark:bg-white dark:text-neutral-950 border-transparent font-bold";
+        } else {
+          btn.className = "px-3.5 py-2 rounded-xl border whitespace-nowrap transition-all border-neutral-200 dark:border-neutral-850 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900";
+        }
+      });
+    }
+
+    // Set Form Priority Levels switcher UI
+    function setFormPriority(priority) {
+      document.getElementById('form-priority').value = priority;
+      const priorities = ['low', 'medium', 'high'];
+      const colors = {
+        low: 'border-green-500 text-green-600 bg-green-500/5 border-2 scale-[1.02]',
+        medium: 'border-orange-500 text-orange-600 bg-orange-500/5 border-2 scale-[1.02]',
+        high: 'border-red-500 text-red-600 bg-red-500/5 border-2 scale-[1.02]'
+      };
+
+      priorities.forEach(p => {
+        const btn = document.getElementById(`priority-btn-${p}`);
+        if (p === priority) {
+          btn.className = `p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 capitalize font-extrabold transition ${colors[p]}`;
+        } else {
+          btn.className = "p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 capitalize font-extrabold transition border-neutral-250 dark:border-neutral-900 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900";
+        }
+      });
+    }
+
+    // Open/Close Modal Controller
+    function handleOpenAddTask() {
+      // Setup default configuration
+      document.getElementById('modal-title').textContent = "Schedule New Goal";
+      document.getElementById('form-task-id').value = "";
+      document.getElementById('form-title').value = "";
+      setFormPriority('low');
+      setFormCategory('Work');
+      document.getElementById('form-day').value = state.selectedDay;
+      document.getElementById('form-section').value = "Morning";
+      document.getElementById('form-time').value = "10:00 AM";
+      document.getElementById('form-duration').value = "30 min";
+      document.getElementById('form-label').value = "";
+
+      const modal = document.getElementById('modal-container');
+      modal.className = "fixed inset-0 bg-black/60 dark:bg-black/85 backdrop-blur-xs z-50 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-6 transition-all duration-300";
+    }
+
+    function handleOpenEditTask(taskId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      document.getElementById('modal-title').textContent = "Modify Active Goal Schedule";
+      document.getElementById('form-task-id').value = task.id;
+      document.getElementById('form-title').value = task.title;
+      setFormPriority(task.priority);
+      setFormCategory(task.category || 'Work');
+      document.getElementById('form-day').value = task.day;
+      document.getElementById('form-section').value = task.section;
+      document.getElementById('form-time').value = task.time || "";
+      document.getElementById('form-duration').value = task.duration || "30 min";
+      document.getElementById('form-label').value = task.label || "";
+
+      const modal = document.getElementById('modal-container');
+      modal.className = "fixed inset-0 bg-black/60 dark:bg-black/85 backdrop-blur-xs z-50 flex flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-6 transition-all duration-300";
+    }
+
+    function handleCloseModal() {
+      const modal = document.getElementById('modal-container');
+      modal.className = "fixed inset-0 bg-black/60 dark:bg-black/85 backdrop-blur-xs z-50 flex-col justify-end lg:justify-center lg:items-center p-0 lg:p-6 transition-all duration-300 hidden";
+    }
+
+    // Submit save/create task callback
+    function handleSaveTask(event) {
+      event.preventDefault();
+      const taskId = document.getElementById('form-task-id').value;
+      const title = document.getElementById('form-title').value;
+      const priority = document.getElementById('form-priority').value;
+      const category = document.getElementById('form-category').value;
+      const day = document.getElementById('form-day').value;
+      const section = document.getElementById('form-section').value;
+      const time = document.getElementById('form-time').value;
+      const duration = document.getElementById('form-duration').value;
+      const labelValue = document.getElementById('form-label').value;
+
+      if (!title.trim()) {
+        showToast('Please type a task description', 'error');
+        return;
+      }
+
+      if (taskId) {
+        // Edit Mode Update
+        state.tasks = state.tasks.map(t => t.id === taskId ? {
+          ...t,
+          title,
+          priority,
+          category,
+          day,
+          section,
+          time,
+          duration,
+          label: labelValue || undefined
+        } : t);
+        showToast('Goal modification updated successfully');
+      } else {
+        // Save Mode Add
+        const newTask = {
+          id: Date.now().toString(),
+          title,
+          priority,
+          category,
+          section,
+          day,
+          time,
+          date: day === 'Friday' ? '2026-02-20' : (day === 'Monday' ? '2026-02-16' : '2026-02-17'),
+          completed: false,
+          duration,
+          label: labelValue || undefined
+        };
+        state.tasks = [newTask, ...state.tasks];
+        showToast('Goal added to calendar schedule');
+      }
+
+      handleCloseModal();
+      renderActiveTab();
+      lucide.createIcons();
+    }
+
+    // PROFILE EDIT MODAL LOGIC
+    function handleOpenProfileModal() {
+      // Set input values to current state values
+      document.getElementById('profile-name-input').value = state.profile.name;
+      document.getElementById('profile-plan-input').value = state.profile.plan;
+      
+      const initials = getInitials(state.profile.name);
+      const previewNode = document.getElementById('modal-profile-avatar-preview');
+      if (state.profile.avatar) {
+        previewNode.innerHTML = `<img src="${state.profile.avatar}" class="w-full h-full rounded-full object-cover">`;
+      } else {
+        previewNode.textContent = initials;
+      }
+
+      // Hide Cropper and show normal form fields by default
+      document.getElementById('profile-edit-form').classList.remove('hidden');
+      document.getElementById('cropping-view').classList.add('hidden');
+
+      const modal = document.getElementById('profile-modal-container');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function handleCloseProfileModal() {
+      const modal = document.getElementById('profile-modal-container');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+      
+      // Destroy cropper instance if active
+      if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+      }
+    }
+
+    function triggerAvatarUpload() {
+      document.getElementById('profile-file-input').click();
+    }
+
+    // Handle initial image selection and init cropper wrapper
+    function handleAvatarFileSelect(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const file = files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        // Hide normal editing form and show cropping wrapper view
+        document.getElementById('profile-edit-form').classList.add('hidden');
+        document.getElementById('cropping-view').classList.remove('hidden');
+
+        const cropImageNode = document.getElementById('cropping-image-element');
+        cropImageNode.src = e.target.result;
+
+        // Destroy old cropper instance if it exists
+        if (cropperInstance) {
+          cropperInstance.destroy();
+        }
+
+        // Initialize Cropper.js with 1:1 aspect ratio constraint
+        cropperInstance = new Cropper(cropImageNode, {
+          aspectRatio: 1,
+          viewMode: 1,
+          autoCropArea: 0.8,
+          background: false,
+          responsive: true,
+          restore: false,
+          guides: false,
+          center: true,
+          highlight: false,
+          cropBoxMovable: true,
+          cropBoxResizable: true,
+          toggleDragModeOnDblclick: false
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function cancelCropping() {
+      // Restore profile form and hide crop view
+      document.getElementById('profile-edit-form').classList.remove('hidden');
+      document.getElementById('cropping-view').classList.add('hidden');
+      
+      if (cropperInstance) {
+        cropperInstance.destroy();
+        cropperInstance = null;
+      }
+      // Reset file input
+      document.getElementById('profile-file-input').value = '';
+    }
+
+    // Apply the cropping box coordinates, crop image, and save to temp storage
+    function applyCroppedImage() {
+      if (!cropperInstance) return;
+
+      // Get high-res square cropped canvas matching design look
+      const canvas = cropperInstance.getCroppedCanvas({
+        width: 150,
+        height: 150
+      });
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      
+      // Update preview in Edit Profile Modal
+      const previewNode = document.getElementById('modal-profile-avatar-preview');
+      previewNode.innerHTML = `<img src="${croppedDataUrl}" class="w-full h-full rounded-full object-cover">`;
+
+      // Keep avatar data temporarily in a tracking attribute
+      document.getElementById('profile-file-input').dataset.tempCroppedData = croppedDataUrl;
+
+      // Destroy cropper and return back to profile editing form
+      document.getElementById('profile-edit-form').classList.remove('hidden');
+      document.getElementById('cropping-view').classList.add('hidden');
+      cropperInstance.destroy();
+      cropperInstance = null;
+    }
+
+    // Handle main profile edit submit action
+    function handleSaveProfile(event) {
+      event.preventDefault();
+      const updatedName = document.getElementById('profile-name-input').value.trim();
+      const updatedPlan = document.getElementById('profile-plan-input').value.trim();
+      const fileInput = document.getElementById('profile-file-input');
+
+      if (!updatedName) {
+        showToast('Please specify a profile name', 'error');
+        return;
+      }
+
+      // Sync data to global app state
+      state.profile.name = updatedName;
+      state.profile.plan = updatedPlan;
+
+      // If a newly cropped image exists, store it to active state avatar
+      if (fileInput.dataset.tempCroppedData) {
+        state.profile.avatar = fileInput.dataset.tempCroppedData;
+        delete fileInput.dataset.tempCroppedData;
+      }
+
+      // Re-render layout and updates
+      updateProfileUI();
+      handleCloseProfileModal();
+      showToast('Profile updated successfully');
+    }
+  </script>
+</body>
+</html>
